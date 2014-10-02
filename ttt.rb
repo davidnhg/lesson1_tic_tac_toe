@@ -17,11 +17,6 @@
 # => 6. If we find a winner, declare the result and stop the current game.  Remember to ask if the human wants to play again.
 require 'pry'
 
-available_choices =  ['1', '2', '3',
-                      '4', '5', '6',
-                      '7', '8', '9']
-chosen_choices = {}
-
 def draw_line(dash, offset, row_cell_opt_1 = '', row_cell_opt_2 = '', row_cell_opt_3 = '')
   # dash:           what kind of character to draw (-, |, etc.) 
   # offset:         number of spaces for spacing dashes
@@ -41,6 +36,18 @@ def draw_line(dash, offset, row_cell_opt_1 = '', row_cell_opt_2 = '', row_cell_o
   line_str = ''
 end
 
+def draw_vertical_dash(offset, temp_arr = '')
+  if temp_arr == ''
+    draw_line('|', offset, '', '', '')
+  else
+    draw_line('|', offset, temp_arr[0], temp_arr[1], temp_arr[2])
+  end
+end
+
+def draw_horizonal_dash(offset)
+  draw_line('-', offset)
+end
+
 def draw_board(chosen_choices)
   # Draw the game board so we can see where the cells are.
   #
@@ -48,7 +55,7 @@ def draw_board(chosen_choices)
   temp_arr = []
 
   # Draw the first line of the board
-  draw_line('|', 4, '', '', '')
+  draw_vertical_dash(4)
 
   # Draw the second line of the board
   (1..3).step(1) do |n|
@@ -58,16 +65,16 @@ def draw_board(chosen_choices)
       temp_arr << ''
     end
   end
-  draw_line('|', 4, temp_arr[0], temp_arr[1], temp_arr[2])
+  draw_vertical_dash(4, temp_arr)
 
   # Draw the third line of the board
-  draw_line('|', 4, '', '', '')
+  draw_vertical_dash(4)
 
   # Draw the fourth line of the board
-  draw_line('-', 5)
+  draw_horizonal_dash(5)
 
   # Draw the 5th line of the board
-  draw_line('|', 4, '', '', '')
+  draw_vertical_dash(4)
 
   # Draw the 6th line of the board
   temp_arr.clear
@@ -78,18 +85,18 @@ def draw_board(chosen_choices)
       temp_arr << ''
     end
   end
-  draw_line('|', 4, temp_arr[0], temp_arr[1], temp_arr[2])
+  draw_vertical_dash(4, temp_arr)
 
-  # Draw the third line of the board
-  draw_line('|', 4, '', '', '')
+  # Draw the 7th line of the board
+  draw_vertical_dash(4)
 
-  # Draw the fourth line of the board
-  draw_line('-', 5)
+  # Draw the 8th line of the board
+  draw_horizonal_dash(5)
 
-  # Draw the first line of the board
-  draw_line('|', 4, '', '', '')
+  # Draw the 9th line of the board
+  draw_vertical_dash(4)
 
-  # Draw the second line of the board
+  # Draw the 10th line of the board
   temp_arr.clear
   (7..9).step(1) do |n|
     if chosen_choices.keys.include?(n.to_s)
@@ -98,12 +105,11 @@ def draw_board(chosen_choices)
       temp_arr << ''
     end
   end
+  draw_vertical_dash(4, temp_arr)
 
+  # Draw the 11th line of the board
+  draw_vertical_dash(4)
 
-  draw_line('|', 4, temp_arr[0], temp_arr[1], temp_arr[2])
-
-  # Draw the third line of the board
-  draw_line('|', 4, '', '', '')
 end # draw_board
 
 def say(sentence)
@@ -142,13 +148,92 @@ def record_move(chosen_choices, type = 'HUMAN', cell_number)
   end
 end
 
-# Main
-draw_board(chosen_choices)
+def winner_is?(move_count, chosen_choices)
+  # Check all possible winning paths:
+  # => 1.  123
+  # => 2.  456
+  # => 3.  789
+  # => 4.  147
+  # => 5.  258
+  # => 6.  369
+  # => 7.  159
+  # => 8.  357
+  #
 
-begin
-  cell_number = choose_move(available_choices)
-  record_move(chosen_choices, 'HUMAN', cell_number)
-  cell_number = choose_move(available_choices, 'COMPUTER')
-  record_move(chosen_choices, 'COMPUTER', cell_number)
+  if move_count < 5
+    return false
+  else
+    # Check paths
+    case
+    when (chosen_choices['1'] == chosen_choices['2']) && (chosen_choices['1'] == chosen_choices['3']) 
+      chosen_choices['1'] == 'X' ? 'X' : 'O'
+    when (chosen_choices['4'] == chosen_choices['5']) && (chosen_choices['4'] == chosen_choices['6']) 
+      chosen_choices['4'] == 'X' ? 'X' : 'O'
+    when (chosen_choices['7'] == chosen_choices['8']) && (chosen_choices['7'] == chosen_choices['9']) 
+      chosen_choices['7'] == 'X' ? 'X' : 'O'
+    when (chosen_choices['1'] == chosen_choices['4']) && (chosen_choices['1'] == chosen_choices['7']) 
+      chosen_choices['1'] == 'X' ? 'X' : 'O'
+    when (chosen_choices['2'] == chosen_choices['5']) && (chosen_choices['2'] == chosen_choices['8']) 
+      chosen_choices['2'] == 'X' ? 'X' : 'O'
+    when (chosen_choices['3'] == chosen_choices['6']) && (chosen_choices['3'] == chosen_choices['9']) 
+      chosen_choices['3'] == 'X' ? 'X' : 'O'
+    when (chosen_choices['1'] == chosen_choices['5']) && (chosen_choices['1'] == chosen_choices['9']) 
+      chosen_choices['1'] == 'X' ? 'X' : 'O'
+    when (chosen_choices['3'] == chosen_choices['5']) && (chosen_choices['3'] == chosen_choices['7']) 
+      chosen_choices['3'] == 'X' ? 'X' : 'O'
+    end
+  end
+end
+
+# Main
+chosen_choices = {}
+continue = 'Y'
+cells_arr =  ['1', '2', '3',
+              '4', '5', '6',
+              '7', '8', '9']
+available_choices = []
+
+while continue == 'Y' do
+  chosen_choices.clear
+  available_choices.clear
+  available_choices = cells_arr.map { |c| c }
+
   draw_board(chosen_choices)
-end until available_choices.size == 0
+
+  move_count = 0
+
+  begin
+    cell_number = choose_move(available_choices)
+    record_move(chosen_choices, 'HUMAN', cell_number)
+    move_count +=1
+    possible_winner = winner_is?(move_count, chosen_choices)
+    if possible_winner == 'X'
+      puts "You win!"
+      break
+    elsif possible_winner == 'O'
+      puts "Computer win!"
+      break
+    end
+
+
+    cell_number = choose_move(available_choices, 'COMPUTER')
+    record_move(chosen_choices, 'COMPUTER', cell_number)
+    move_count +=1
+    possible_winner = winner_is?(move_count, chosen_choices)
+    if possible_winner == 'X'
+      puts "You win!"
+      break
+    elsif possible_winner == 'O'
+      puts "Computer win!"
+      break
+    end
+
+    draw_board(chosen_choices)
+  end until available_choices.size == 0
+
+  # Ask if user wants to play again
+  draw_board(chosen_choices)
+  say "Play again? (Y/N)"
+  continue = gets.chomp.upcase
+
+end
